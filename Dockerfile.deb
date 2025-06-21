@@ -1,4 +1,4 @@
-FROM debian:12 as builder
+FROM debian:12 AS builder
 
 ARG ATOP_VERSION
 ENV DEBIAN_FRONTEND=noninteractive
@@ -41,4 +41,4 @@ RUN ARCH=$(dpkg --print-architecture) && \
 CMD ["/bin/bash"]
 
 FROM scratch AS export
-COPY --from=builder /build /build
+COPY --from=builder /build /
