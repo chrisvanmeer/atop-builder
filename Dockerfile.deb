@@ -19,8 +19,7 @@ RUN make \
     && make install DESTDIR=/tmp/atop-installroot
 
 RUN rm -rf /tmp/atop-installroot/lib/ssl/private && \
-    chmod -R a+rX /tmp/atop-installroot && \
-    ls -laR /tmp/atop-installroot/lib/ssl
+    chmod -R a+rX /tmp/atop-installroot
 
 RUN mkdir -p /tmp/atop-installroot/DEBIAN
 RUN ARCH=$(dpkg --print-architecture) && \
