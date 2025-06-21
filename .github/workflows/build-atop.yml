@@ -44,46 +44,27 @@ jobs:
           name: atop-deb-${{ matrix.arch }}-${{ env.ATOP_VERSION }}
           path: build-deb/${{ matrix.arch }}/*.deb
 
-  build-rpm8:
-    name: 🏗️ Building .rpm package for EL8
+  build-rpm:
+    name: 🏗️ Building .rpm packages
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        el: [EL8, EL9]
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build .rpm file for atop ${{ env.ATOP_VERSION }}
+      - name: Build .rpm file for atop ${{ env.ATOP_VERSION }} (${{ matrix.el }})
         run: |
-          docker build --build-arg ATOP_VERSION=$ATOP_VERSION -f Dockerfile8.rpm -t atop-rpm8-builder .
-          container_id=$(docker create atop-rpm8-builder)
-          mkdir -p build-rpm
-          docker cp "$container_id":/build/. ./build-rpm
+          docker build --build-arg ATOP_VERSION=$ATOP_VERSION -f Dockerfile_${{ matrix.el }}.rpm -t atop-${{ matrix.el }}-builder .
+          container_id=$(docker create atop-${{ matrix.el }}-builder)
+          mkdir -p build-rpm-${{ matrix.el }}
+          docker cp "$container_id":/build/. ./build-rpm-${{ matrix.el }}
           docker rm "$container_id"
 
-      - name: Upload .rpm artifact
+      - name: Upload .rpm artifact (${{ matrix.el }})
         uses: actions/upload-artifact@v4
         with:
-          name: atop-rpm8-${{ env.ATOP_VERSION }}
-          path: build-rpm/
-
-  build-rpm9:
-    name: 🏗️ Building .rpm package for EL9
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Build .rpm file for atop ${{ env.ATOP_VERSION }}
-        run: |
-          docker build --build-arg ATOP_VERSION=$ATOP_VERSION -f Dockerfile9.rpm -t atop-rpm9-builder .
-          container_id=$(docker create atop-rpm9-builder)
-          mkdir -p build-rpm
-          docker cp "$container_id":/build/. ./build-rpm
-          docker rm "$container_id"
-
-      - name: Upload .rpm artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: atop-rpm9-${{ env.ATOP_VERSION }}
-          path: build-rpm/
+          name: atop-rpm-${{ matrix.el }}-${{ env.ATOP_VERSION }}
+          path: build-rpm-${{ matrix.el }}/
