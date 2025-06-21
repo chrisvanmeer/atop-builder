@@ -49,7 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        el: [EL8, EL9]
+        el: [el8, el9]
 
     steps:
       - name: Checkout repository
