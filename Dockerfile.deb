@@ -18,7 +18,7 @@ RUN make \
     && mkdir -p /build \
     && make install DESTDIR=/tmp/atop-installroot
 
-RUN rm -rf /tmp/atop-installroot/lib/ssl/private && \
+RUN rm -rf /tmp/atop-installroot/lib/ssl && \
     chmod -R a+rX /tmp/atop-installroot
 
 RUN mkdir -p /tmp/atop-installroot/DEBIAN

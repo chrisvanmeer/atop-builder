@@ -29,19 +29,10 @@ jobs:
       - name: Build .deb for atop ${{ env.ATOP_VERSION }} (amd64)
         run: |
           docker buildx build \
-            --no-cache \
             --platform linux/amd64 \
             --build-arg ATOP_VERSION=${{ env.ATOP_VERSION }} \
             --output type=local,dest=build-deb/amd64 \
             -f Dockerfile.deb .
-
-      - name: Debug inhoud build-deb/amd64
-        run: |
-          find build-deb/amd64 -ls
-          ls -ld build-deb/amd64/lib/ssl/private || echo "Dir niet gevonden"
-
-      - name: Fix permissions (amd64)
-        run: sudo chmod -R a+rX build-deb/amd64
 
       - name: Upload .deb artifact (amd64)
         uses: actions/upload-artifact@v4
