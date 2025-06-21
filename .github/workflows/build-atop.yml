@@ -13,7 +13,7 @@ env:
 
 jobs:
   build-deb-amd64:
-    name: 🏗️ Build .deb packages (amd64)
+    name: 🏗️ Build .deb package for AMD64
     runs-on: ubuntu-latest
 
     steps:
@@ -41,7 +41,7 @@ jobs:
           path: build-deb/amd64/*.deb
 
   build-deb-arm64:
-    name: 🏗️ Build .deb packages (arm64)
+    name: 🏗️ Build .deb package for ARM64
     runs-on: ubuntu-latest
 
     steps:
@@ -62,9 +62,6 @@ jobs:
             --output type=local,dest=build-deb/arm64 \
             -f Dockerfile.deb .
 
-      - name: Fix permissions (arm64)
-        run: sudo chmod -R a+rX build-deb/arm64
-
       - name: Upload .deb artifact (arm64)
         uses: actions/upload-artifact@v4
         with:
@@ -74,6 +71,7 @@ jobs:
   build-rpm8:
     name: 🏗️ Building .rpm package for EL8
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -95,6 +93,7 @@ jobs:
   build-rpm9:
     name: 🏗️ Building .rpm package for EL9
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
