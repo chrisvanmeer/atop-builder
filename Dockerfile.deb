@@ -3,6 +3,7 @@ FROM debian:12
 ARG ATOP_VERSION
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Europe/Amsterdam
+ENV ARCH=$(dpkg --print-architecture)
 
 RUN apt update && apt install -y \
     build-essential wget pkg-config git make zlib1g-dev \
@@ -19,18 +20,20 @@ RUN make \
  && make install DESTDIR=/tmp/atop-installroot
 
 RUN mkdir -p /tmp/atop-installroot/DEBIAN
-RUN cat > /tmp/atop-installroot/DEBIAN/control <<EOF
+RUN ARCH=$(dpkg --print-architecture) && \
+    cat <<EOF > /tmp/atop-installroot/DEBIAN/control
 Package: atop
 Version: ${ATOP_VERSION}
 Section: admin
 Priority: optional
-Architecture: amd64
+Architecture: $ARCH
 Maintainer: Gerlof Langeveld
 Homepage: https://www.atoptool.nl
 Description: Advanced interactive system process monitor
-Depends: libc6, zlib1g, libncurses6, libglib2.0-0
+Depends: libc6, zlib1g, libncursesw6, libglib2.0-0
 EOF
 
-RUN dpkg-deb --build /tmp/atop-installroot /build/atop_${ATOP_VERSION}_amd64.deb
+RUN ARCH=$(dpkg --print-architecture) && \
+    dpkg-deb --build /tmp/atop-installroot /build/atop_${ATOP_VERSION}_$ARCH.deb
 
 CMD ["/bin/bash"]

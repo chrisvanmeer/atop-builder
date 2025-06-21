@@ -13,25 +13,49 @@ env:
 
 jobs:
   build-deb:
-    name: 🏗️ Building .deb package
+    name: 🏗️ Build .deb packages (amd64 & arm64)
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build .deb file for atop ${{ env.ATOP_VERSION }}
-        run: |
-          docker build --build-arg ATOP_VERSION=$ATOP_VERSION -f Dockerfile.deb -t atop-deb-builder .
-          container_id=$(docker create atop-deb-builder)
-          mkdir -p build-deb
-          docker cp "$container_id":/build/. ./build-deb
-          docker rm "$container_id"
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Upload .deb artifact
+      - name: Set up QEMU for cross-compilation
+        uses: docker/setup-qemu-action@v3
+
+      - name: Build .deb for atop ${{ env.ATOP_VERSION }} (amd64 & arm64)
+        run: |
+          # Empty architecture directories
+          mkdir -p build-deb/amd64 build-deb/arm64
+
+          # Build amd64
+          docker buildx build \
+            --platform linux/amd64 \
+            --build-arg ATOP_VERSION=${{ env.ATOP_VERSION }} \
+            --output type=local,dest=build-deb/amd64 \
+            -f Dockerfile.deb .
+
+          # Build arm64
+          docker buildx build \
+            --platform linux/arm64 \
+            --build-arg ATOP_VERSION=${{ env.ATOP_VERSION }} \
+            --output type=local,dest=build-deb/arm64 \
+            -f Dockerfile.deb .
+
+      - name: Upload .deb artifact (amd64)
         uses: actions/upload-artifact@v4
         with:
-          name: atop-deb-${{ env.ATOP_VERSION }}
-          path: build-deb/
+          name: atop-deb-amd64-${{ env.ATOP_VERSION }}
+          path: build-deb/amd64/
+
+      - name: Upload .deb artifact (arm64)
+        uses: actions/upload-artifact@v4
+        with:
+          name: atop-deb-arm64-${{ env.ATOP_VERSION }}
+          path: build-deb/arm64/
 
   build-rpm8:
     name: 🏗️ Building .rpm package for EL8
