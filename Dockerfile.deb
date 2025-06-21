@@ -1,6 +1,7 @@
 FROM debian:12 AS builder
 
 ARG ATOP_VERSION
+ARG ARCH
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Europe/Amsterdam
 
@@ -22,21 +23,19 @@ RUN rm -rf /tmp/atop-installroot/lib/ssl && \
     chmod -R a+rX /tmp/atop-installroot
 
 RUN mkdir -p /tmp/atop-installroot/DEBIAN
-RUN ARCH=$(dpkg --print-architecture) && \
-    cat <<EOF > /tmp/atop-installroot/DEBIAN/control
+RUN cat << EOF > /tmp/atop-installroot/DEBIAN/control
 Package: atop
 Version: ${ATOP_VERSION}
 Section: admin
 Priority: optional
-Architecture: $ARCH
+Architecture: ${ARCH}
 Maintainer: Gerlof Langeveld
 Homepage: https://www.atoptool.nl
 Description: Advanced interactive system process monitor
 Depends: libc6, zlib1g, libncursesw6, libglib2.0-0
 EOF
 
-RUN ARCH=$(dpkg --print-architecture) && \
-    dpkg-deb --build /tmp/atop-installroot /build/atop_${ATOP_VERSION}_$ARCH.deb
+RUN dpkg-deb --build /tmp/atop-installroot /build/atop_${ATOP_VERSION}_${ARCH}.deb
 
 CMD ["/bin/bash"]
 

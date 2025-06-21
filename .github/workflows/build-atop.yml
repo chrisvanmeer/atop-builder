@@ -12,9 +12,12 @@ env:
   ATOP_VERSION: ${{ github.event.inputs.atop_version }}
 
 jobs:
-  build-deb-amd64:
-    name: 🏗️ Build .deb package for AMD64
+  build-deb:
+    name: 🏗️ Build .deb packages
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
 
     steps:
       - name: Checkout repository
@@ -26,47 +29,20 @@ jobs:
       - name: Set up QEMU for cross-compilation
         uses: docker/setup-qemu-action@v3
 
-      - name: Build .deb for atop ${{ env.ATOP_VERSION }} (amd64)
+      - name: Build .deb for atop ${{ env.ATOP_VERSION }} (${{ matrix.arch }})
         run: |
           docker buildx build \
-            --platform linux/amd64 \
+            --platform linux/${{ matrix.arch }} \
+            --build-arg ARCH=${{ matrix.arch }} \
             --build-arg ATOP_VERSION=${{ env.ATOP_VERSION }} \
-            --output type=local,dest=build-deb/amd64 \
+            --output type=local,dest=build-deb/${{ matrix.arch }} \
             -f Dockerfile.deb .
 
-      - name: Upload .deb artifact (amd64)
+      - name: Upload .deb artifact (${{ matrix.arch }})
         uses: actions/upload-artifact@v4
         with:
-          name: atop-deb-amd64-${{ env.ATOP_VERSION }}
-          path: build-deb/amd64/*.deb
-
-  build-deb-arm64:
-    name: 🏗️ Build .deb package for ARM64
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Set up QEMU for cross-compilation
-        uses: docker/setup-qemu-action@v3
-
-      - name: Build .deb for atop ${{ env.ATOP_VERSION }} (arm64)
-        run: |
-          docker buildx build \
-            --platform linux/arm64 \
-            --build-arg ATOP_VERSION=${{ env.ATOP_VERSION }} \
-            --output type=local,dest=build-deb/arm64 \
-            -f Dockerfile.deb .
-
-      - name: Upload .deb artifact (arm64)
-        uses: actions/upload-artifact@v4
-        with:
-          name: atop-deb-arm64-${{ env.ATOP_VERSION }}
-          path: build-deb/arm64/*.deb
+          name: atop-deb-${{ matrix.arch }}-${{ env.ATOP_VERSION }}
+          path: build-deb/${{ matrix.arch }}/*.deb
 
   build-rpm8:
     name: 🏗️ Building .rpm package for EL8
