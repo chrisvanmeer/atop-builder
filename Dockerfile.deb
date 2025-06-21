@@ -1,4 +1,4 @@
-FROM debian:12
+FROM debian:12 as builder
 
 ARG ATOP_VERSION
 ENV DEBIAN_FRONTEND=noninteractive
@@ -39,3 +39,6 @@ RUN ARCH=$(dpkg --print-architecture) && \
     dpkg-deb --build /tmp/atop-installroot /build/atop_${ATOP_VERSION}_$ARCH.deb
 
 CMD ["/bin/bash"]
+
+FROM scratch AS export
+COPY --from=builder /build /build
