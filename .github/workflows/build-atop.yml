@@ -29,6 +29,7 @@ jobs:
       - name: Build .deb for atop ${{ env.ATOP_VERSION }} (amd64)
         run: |
           docker buildx build \
+            --no-cache \
             --platform linux/amd64 \
             --build-arg ATOP_VERSION=${{ env.ATOP_VERSION }} \
             --output type=local,dest=build-deb/amd64 \

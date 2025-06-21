@@ -10,16 +10,17 @@ RUN apt update && apt install -y \
 
 WORKDIR /usr/src
 RUN wget https://www.atoptool.nl/download/atop-${ATOP_VERSION}.tar.gz \
- && tar xzf atop-${ATOP_VERSION}.tar.gz
+    && tar xzf atop-${ATOP_VERSION}.tar.gz
 
 WORKDIR /usr/src/atop-${ATOP_VERSION}
 RUN make \
- && mkdir -p /tmp/atop-installroot \
- && mkdir -p /build \
- && make install DESTDIR=/tmp/atop-installroot
+    && mkdir -p /tmp/atop-installroot \
+    && mkdir -p /build \
+    && make install DESTDIR=/tmp/atop-installroot
 
 RUN rm -rf /tmp/atop-installroot/lib/ssl/private && \
-    chmod -R a+rX /tmp/atop-installroot
+    chmod -R a+rX /tmp/atop-installroot && \
+    ls -laR /tmp/atop-installroot/lib/ssl
 
 RUN mkdir -p /tmp/atop-installroot/DEBIAN
 RUN ARCH=$(dpkg --print-architecture) && \
