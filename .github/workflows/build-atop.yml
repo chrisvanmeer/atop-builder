@@ -38,7 +38,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: atop-deb-amd64-${{ env.ATOP_VERSION }}
-          path: build-deb/amd64/
+          path: build-deb/amd64/*.deb
 
   # build-deb-arm64:
   #   name: 🏗️ Build .deb packages (arm64)
