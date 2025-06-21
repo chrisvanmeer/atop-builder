@@ -3,7 +3,6 @@ FROM debian:12
 ARG ATOP_VERSION
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Europe/Amsterdam
-ENV ARCH=$(dpkg --print-architecture)
 
 RUN apt update && apt install -y \
     build-essential wget pkg-config git make zlib1g-dev \
