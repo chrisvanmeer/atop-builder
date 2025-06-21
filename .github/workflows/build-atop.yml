@@ -34,6 +34,9 @@ jobs:
             --output type=local,dest=build-deb/amd64 \
             -f Dockerfile.deb .
 
+      - name: Fix permissions (amd64)
+        run: sudo chmod -R a+rX build-deb/amd64
+
       - name: Upload .deb artifact (amd64)
         uses: actions/upload-artifact@v4
         with:
@@ -61,6 +64,9 @@ jobs:
             --build-arg ATOP_VERSION=${{ env.ATOP_VERSION }} \
             --output type=local,dest=build-deb/arm64 \
             -f Dockerfile.deb .
+
+      - name: Fix permissions (arm64)
+        run: sudo chmod -R a+rX build-deb/arm64
 
       - name: Upload .deb artifact (arm64)
         uses: actions/upload-artifact@v4
