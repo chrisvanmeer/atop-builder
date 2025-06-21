@@ -18,6 +18,8 @@ RUN make \
  && mkdir -p /build \
  && make install DESTDIR=/tmp/atop-installroot
 
+RUN rm -rf /tmp/atop-installroot/lib/ssl/private
+
 RUN mkdir -p /tmp/atop-installroot/DEBIAN
 RUN ARCH=$(dpkg --print-architecture) && \
     cat <<EOF > /tmp/atop-installroot/DEBIAN/control

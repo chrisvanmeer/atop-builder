@@ -12,8 +12,8 @@ env:
   ATOP_VERSION: ${{ github.event.inputs.atop_version }}
 
 jobs:
-  build-deb:
-    name: 🏗️ Build .deb packages (amd64 & arm64)
+  build-deb-amd64:
+    name: 🏗️ Build .deb packages (amd64)
     runs-on: ubuntu-latest
 
     steps:
@@ -26,36 +26,41 @@ jobs:
       - name: Set up QEMU for cross-compilation
         uses: docker/setup-qemu-action@v3
 
-      - name: Build .deb for atop ${{ env.ATOP_VERSION }} (amd64 & arm64)
+      - name: Build .deb for atop ${{ env.ATOP_VERSION }} (amd64)
         run: |
-          # Empty architecture directories
-          mkdir -p build-deb/amd64 build-deb/arm64
-
-          # Build amd64
           docker buildx build \
             --platform linux/amd64 \
             --build-arg ATOP_VERSION=${{ env.ATOP_VERSION }} \
             --output type=local,dest=build-deb/amd64 \
             -f Dockerfile.deb .
 
-          # Build arm64
-          docker buildx build \
-            --platform linux/arm64 \
-            --build-arg ATOP_VERSION=${{ env.ATOP_VERSION }} \
-            --output type=local,dest=build-deb/arm64 \
-            -f Dockerfile.deb .
-
-      - name: Fix permissions (amd64)
-        run: sudo chmod -R a+rX build-deb/amd64
-
-      - name: Fix permissions (arm64)
-        run: sudo chmod -R a+rX build-deb/arm64
-
       - name: Upload .deb artifact (amd64)
         uses: actions/upload-artifact@v4
         with:
           name: atop-deb-amd64-${{ env.ATOP_VERSION }}
           path: build-deb/amd64/
+
+  build-deb-arm64:
+    name: 🏗️ Build .deb packages (arm64)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Set up QEMU for cross-compilation
+        uses: docker/setup-qemu-action@v3
+
+      - name: Build .deb for atop ${{ env.ATOP_VERSION }} (arm64)
+        run: |
+          docker buildx build \
+            --platform linux/arm64 \
+            --build-arg ATOP_VERSION=${{ env.ATOP_VERSION }} \
+            --output type=local,dest=build-deb/arm64 \
+            -f Dockerfile.deb .
 
       - name: Upload .deb artifact (arm64)
         uses: actions/upload-artifact@v4
