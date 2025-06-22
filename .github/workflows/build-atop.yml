@@ -45,26 +45,40 @@ jobs:
           path: build-deb/${{ matrix.arch }}/*.deb
 
   build-rpm:
-    name: 🏗️ Building .rpm packages
+    name: 🏗️ Build .rpm for ${{ matrix.el }} on ${{ matrix.arch }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
         el: [el8, el9]
+        arch: [amd64, arm64]
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build .rpm file for atop ${{ env.ATOP_VERSION }} (${{ matrix.el }})
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Set up QEMU for cross-compilation
+        uses: docker/setup-qemu-action@v3
+
+      - name: Build .rpm file for atop ${{ env.ATOP_VERSION }} (${{ matrix.el }}-${{ matrix.arch }})
         run: |
-          docker build --build-arg ATOP_VERSION=$ATOP_VERSION -f Dockerfile_${{ matrix.el }}.rpm -t atop-${{ matrix.el }}-builder .
-          container_id=$(docker create atop-${{ matrix.el }}-builder)
-          mkdir -p build-rpm-${{ matrix.el }}
-          docker cp "$container_id":/build/. ./build-rpm-${{ matrix.el }}
+          PLATFORM=${{ matrix.arch == 'arm64' && 'linux/arm64' || 'linux/amd64' }}
+          docker buildx build \
+            --platform "$PLATFORM" \
+            --build-arg ATOP_VERSION=$ATOP_VERSION \
+            -f Dockerfile_${{ matrix.el }}.rpm \
+            -t atop-builder:${{ matrix.el }}-${{ matrix.arch }} \
+            --load .
+
+          container_id=$(docker create atop-builder:${{ matrix.el }}-${{ matrix.arch }})
+          mkdir -p build-rpm-${{ matrix.el }}-${{ matrix.arch }}
+          docker cp "$container_id":/build/. ./build-rpm-${{ matrix.el }}-${{ matrix.arch }}
           docker rm "$container_id"
 
-      - name: Upload .rpm artifact (${{ matrix.el }})
+      - name: 📦 Upload .rpm artifact (${{ matrix.el }}-${{ matrix.arch }})
         uses: actions/upload-artifact@v4
         with:
-          name: atop-rpm-${{ matrix.el }}-${{ env.ATOP_VERSION }}
-          path: build-rpm-${{ matrix.el }}/
+          name: atop-rpm-${{ matrix.el }}-${{ matrix.arch }}-${{ env.ATOP_VERSION }}
+          path: build-rpm-${{ matrix.el }}-${{ matrix.arch }}

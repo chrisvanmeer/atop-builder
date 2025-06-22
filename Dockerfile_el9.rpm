@@ -1,4 +1,4 @@
-FROM rockylinux:9
+FROM rockylinux:9 AS builder
 
 ARG ATOP_VERSION
 
@@ -41,6 +41,10 @@ RUN mkdir -p /tmp/atop-installroot/usr/lib \
 RUN cd /tmp/atop-installroot \
     && tar czf ~/rpmbuild/SOURCES/atop-${ATOP_VERSION}-bin.tar.gz *
 
+# Detect architecture and set in rpmmacros
+RUN echo '%dist .el9' >> ~/.rpmmacros \
+    && echo "%_arch $(uname -m)" >> ~/.rpmmacros
+
 # Write a correct .spec file (with the fixes applied)
 RUN cat > ~/rpmbuild/SPECS/atop.spec <<EOF
 Name: atop
@@ -50,7 +54,7 @@ Summary: Advanced interactive monitor for Linux-systems
 License: GPL
 URL: https://www.atoptool.nl
 Source0: atop-${ATOP_VERSION}-bin.tar.gz
-BuildArch: x86_64
+BuildArch: %{_arch}
 
 Requires: zlib, ncurses, glib2, systemd
 
@@ -93,6 +97,9 @@ EOF
 # Build RPM package (actual artifact creation)
 RUN rpmbuild -bb ~/rpmbuild/SPECS/atop.spec \
   && mkdir -p /build \
-  && cp /root/rpmbuild/RPMS/x86_64/atop-${ATOP_VERSION}-1.el9.x86_64.rpm /build/
+  && cp /root/rpmbuild/RPMS/*/atop-${ATOP_VERSION}-1.el9.*.rpm /build/
 
 CMD ["/bin/bash"]
+
+FROM scratch AS export
+COPY --from=builder /build /
