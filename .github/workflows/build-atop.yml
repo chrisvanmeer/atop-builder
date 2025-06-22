@@ -12,37 +12,37 @@ env:
   ATOP_VERSION: ${{ github.event.inputs.atop_version }}
 
 jobs:
-  # build-deb:
-  #   name: 🏗️ Build .deb on ${{ matrix.arch }}
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       arch: [amd64, arm64]
+  build-deb:
+    name: 🏗️ Build .deb on ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
 
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v4
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-  #     - name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-  #     - name: Set up QEMU for cross-compilation
-  #       uses: docker/setup-qemu-action@v3
+      - name: Set up QEMU for cross-compilation
+        uses: docker/setup-qemu-action@v3
 
-  #     - name: Build .deb for atop ${{ env.ATOP_VERSION }} (${{ matrix.arch }})
-  #       run: |
-  #         docker buildx build \
-  #           --platform linux/${{ matrix.arch }} \
-  #           --build-arg ARCH=${{ matrix.arch }} \
-  #           --build-arg ATOP_VERSION=${{ env.ATOP_VERSION }} \
-  #           --output type=local,dest=build-deb/${{ matrix.arch }} \
-  #           -f Dockerfile.deb .
+      - name: Build .deb for atop ${{ env.ATOP_VERSION }} (${{ matrix.arch }})
+        run: |
+          docker buildx build \
+            --platform linux/${{ matrix.arch }} \
+            --build-arg ARCH=${{ matrix.arch }} \
+            --build-arg ATOP_VERSION=${{ env.ATOP_VERSION }} \
+            --output type=local,dest=build-deb/${{ matrix.arch }} \
+            -f Dockerfile.deb .
 
-  #     - name: Upload .deb artifact (${{ matrix.arch }})
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: atop-deb-${{ matrix.arch }}-${{ env.ATOP_VERSION }}
-  #         path: build-deb/${{ matrix.arch }}/*.deb
+      - name: Upload .deb artifact (${{ matrix.arch }})
+        uses: actions/upload-artifact@v4
+        with:
+          name: atop-deb-${{ matrix.arch }}-${{ env.ATOP_VERSION }}
+          path: build-deb/${{ matrix.arch }}/*.deb
 
   build-rpm:
     name: 🏗️ Build .rpm for ${{ matrix.el }} on ${{ matrix.arch }}
