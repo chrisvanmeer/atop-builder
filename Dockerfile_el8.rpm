@@ -1,9 +1,16 @@
 FROM rockylinux:8 AS builder
 
 ARG ATOP_VERSION
+ARG ARCH
+ARG EL
+
+# Detect architecture and set in rpmmacros
+RUN echo "%dist .${EL}" >> ~/.rpmmacros \
+    && echo "%_arch $(uname -m)" >> ~/.rpmmacros
 
 # Install required RPM build and compilation tools
-RUN dnf install -y \
+RUN dnf -y update \
+    && dnf install -y \
         rpm-build \
         rpmdevtools \
         gcc \
@@ -14,9 +21,6 @@ RUN dnf install -y \
         ncurses-devel \
         systemd-rpm-macros \
     && dnf clean all
-
-# Set RPM dist macro clearly (el8)
-RUN echo '%dist .el8' >> ~/.rpmmacros
 
 # Create RPM build environment
 RUN rpmdev-setuptree
@@ -39,10 +43,6 @@ RUN mkdir -p /tmp/atop-installroot/usr/lib \
 # Create tarball with installed files for rpmbuild
 RUN cd /tmp/atop-installroot \
     && tar czf ~/rpmbuild/SOURCES/atop-${ATOP_VERSION}-bin.tar.gz *
-
-# Detect architecture and set in rpmmacros
-RUN echo '%dist .el8' >> ~/.rpmmacros \
-    && echo "%_arch $(uname -m)" >> ~/.rpmmacros
 
 # Write a correct .spec file (with the fixes applied)
 RUN cat > ~/rpmbuild/SPECS/atop.spec <<EOF
@@ -96,7 +96,7 @@ EOF
 # Build RPM package (actual artifact creation)
 RUN rpmbuild -bb ~/rpmbuild/SPECS/atop.spec \
   && mkdir -p /build \
-  && cp /root/rpmbuild/RPMS/*/atop-${ATOP_VERSION}-1.el8.*.rpm /build/
+  && cp /root/rpmbuild/RPMS/*/atop-${ATOP_VERSION}-1.${EL}.*.rpm /build/
 
 CMD ["/bin/bash"]
 

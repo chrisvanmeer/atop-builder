@@ -1,4 +1,4 @@
-FROM rockylinux:9 AS builder
+FROM rockylinux/rockylinux:10 AS builder
 
 ARG ATOP_VERSION
 ARG ARCH
