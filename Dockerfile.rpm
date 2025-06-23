@@ -9,8 +9,7 @@ RUN echo "%dist .${EL}" >> ~/.rpmmacros \
     && echo "%_arch $(uname -m)" >> ~/.rpmmacros
 
 # Install required RPM build and compilation tools
-RUN dnf -y update \
-    && dnf install -y \
+RUN dnf install -y \
         rpm-build \
         rpmdevtools \
         gcc \
