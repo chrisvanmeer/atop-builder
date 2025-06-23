@@ -62,15 +62,23 @@ jobs:
       - name: Set up QEMU for cross-compilation
         uses: docker/setup-qemu-action@v3
 
+      - name: Set BASE_IMAGE for ${{ matrix.el }}
+        run: |
+          case "${{ matrix.el }}" in
+            el8)  echo "BASE_IMAGE=rockylinux/rockylinux:8"  >> "$GITHUB_ENV" ;;
+            el9)  echo "BASE_IMAGE=rockylinux/rockylinux:9"  >> "$GITHUB_ENV" ;;
+            el10) echo "BASE_IMAGE=rockylinux/rockylinux:10" >> "$GITHUB_ENV" ;;
+          esac
+
       - name: Build .rpm for atop ${{ env.ATOP_VERSION }} (${{ matrix.el }}-${{ matrix.arch }})
         run: |
           docker buildx build \
             --platform linux/${{ matrix.arch }} \
-            --build-arg EL=${{ matrix.el }} \
-            --build-arg ARCH=${{ matrix.arch }} \
             --build-arg ATOP_VERSION=${{ env.ATOP_VERSION }} \
+            --build-arg BASE_IMAGE=${{ env.BASE_IMAGE }} \
+            --build-arg EL=${{ matrix.el }} \
             --output type=local,dest=build-rpm/${{ matrix.el }}/${{ matrix.arch }} \
-            -f Dockerfile_${{ matrix.el }}.rpm .
+            -f Dockerfile.rpm .
 
       - name: Upload .rpm artifact (${{ matrix.el }}-${{ matrix.arch }})
         uses: actions/upload-artifact@v4
