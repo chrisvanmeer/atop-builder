@@ -87,6 +87,9 @@ jobs:
     needs: [build-deb, build-rpm]
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
       - name: Download all packages
         uses: actions/download-artifact@v7
         with:
