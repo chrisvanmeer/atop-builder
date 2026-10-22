@@ -12,6 +12,9 @@ on:
 env:
   ATOP_VERSION: ${{ github.event.inputs.atop_version }}
 
+permissions:
+  contents: write
+
 jobs:
   build-deb:
     name: 🏗️ Build .deb on ${{ matrix.arch }}
@@ -77,3 +80,31 @@ jobs:
         with:
           name: atop-rpm-${{ matrix.el }}-${{ matrix.arch }}-${{ env.ATOP_VERSION }}
           path: build-rpm/${{ matrix.el }}/${{ matrix.arch }}/
+
+  release:
+    name: 🚀 Publish GitHub release
+    runs-on: ubuntu-latest
+    needs: [build-deb, build-rpm]
+
+    steps:
+      - name: Download all packages
+        uses: actions/download-artifact@v7
+        with:
+          pattern: atop-*-${{ env.ATOP_VERSION }}
+          path: dist
+
+      - name: Create release and upload packages
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="v${ATOP_VERSION}"
+          mapfile -t assets < <(find dist -type f \( -name '*.deb' -o -name '*.rpm' \) -print | sort)
+
+          if [ "${#assets[@]}" -eq 0 ]; then
+            echo "No .deb or .rpm packages were downloaded" >&2
+            exit 1
+          fi
+
+          gh release create "$tag" "${assets[@]}" \
+            --title "Atop $ATOP_VERSION" \
+            --generate-notes
